@@ -144,7 +144,7 @@ function Nav({ page, setPage }) {
   ];
 
   return (
-    <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: "14px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: scrolled ? "rgba(13,13,26,.96)" : "rgba(13,13,26,.7)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.glassBorder}`, transition: "background .3s" }}>
+    <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: window.innerWidth < 768 ? "14px 20px" : "14px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", background: scrolled ? "rgba(13,13,26,.96)" : "rgba(13,13,26,.7)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.glassBorder}`, transition: "background .3s" }}>
       <div onClick={() => { setPage("home"); setOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
         <img src={`data:image/png;base64,${ICON_B64}`} alt="logo" style={{ height: 36 }} />
         <div style={{ lineHeight: 1.15 }}>
@@ -156,29 +156,53 @@ function Nav({ page, setPage }) {
       {/* Desktop links */}
       <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
         {links.map(l => (
-          <button key={l.id} onClick={() => setPage(l.id)} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: page === l.id ? "#fff" : C.muted, letterSpacing: "0.04em", transition: "color .2s", padding: "4px 0", borderBottom: page === l.id ? `2px solid ${C.magenta}` : "2px solid transparent" }}>
+          <button key={l.id} onClick={() => setPage(l.id)} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, color: page === l.id ? "#fff" : C.muted, letterSpacing: "0.04em", transition: "color .2s", padding: "4px 0", borderBottom: page === l.id ? `2px solid ${C.magenta}` : "2px solid transparent", display: window.innerWidth < 768 ? "none" : "block" }}>
             {l.label}
           </button>
         ))}
-        <Btn onClick={() => setPage("order")} style={{ padding: "8px 20px", fontSize: 13 }}>Get Connected</Btn>
+        <Btn onClick={() => setPage("order")} style={{ padding: "8px 20px", fontSize: 13, display: window.innerWidth < 768 ? "none" : "flex" }}>Get Connected</Btn>
+        {/* Mobile menu button */}
+        <button onClick={() => setOpen(!open)} style={{ display: window.innerWidth < 768 ? "flex" : "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <span style={{ display: "block", width: 24, height: 2, background: "#fff", borderRadius: 2 }} />
+          <span style={{ display: "block", width: 24, height: 2, background: "#fff", borderRadius: 2 }} />
+          <span style={{ display: "block", width: 24, height: 2, background: "#fff", borderRadius: 2 }} />
+        </button>
       </div>
+      {/* Mobile dropdown */}
+      {open && window.innerWidth < 768 && (
+        <div style={{ position: "fixed", top: 70, left: 0, right: 0, background: "rgba(13,13,26,.98)", backdropFilter: "blur(20px)", padding: "20px 24px", borderBottom: `1px solid ${C.glassBorder}`, zIndex: 300, display: "flex", flexDirection: "column", gap: 16 }}>
+          {links.map(l => (
+            <button key={l.id} onClick={() => { setPage(l.id); setOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 16, fontWeight: 500, color: page === l.id ? "#fff" : C.muted, textAlign: "left", padding: "8px 0", borderBottom: `1px solid ${C.glassBorder}` }}>
+              {l.label}
+            </button>
+          ))}
+          <Btn onClick={() => { setPage("order"); setOpen(false); }} style={{ width: "100%", justifyContent: "center" }}>Get Connected</Btn>
+        </div>
+      )}
     </nav>
   );
 }
 
 // ── HOME PAGE ─────────────────────────────────────────────────
 function HomePage({ setPage }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", padding: "120px 64px 80px", position: "relative", overflow: "hidden" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: isMobile ? "100px 20px 40px" : "120px 64px 80px", position: "relative", overflow: "hidden" }}>
       <Orbs />
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 70% at 70% 50%, rgba(92,47,146,.15) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 20% 30%, rgba(44,55,146,.18) 0%, transparent 55%)` }} />
 
       <div style={{ maxWidth: 660, position: "relative", zIndex: 2, animation: "fadeUp .9s ease both" }}>
         <Badge>100% Black-Owned ICT Company · Eastern Cape, South Africa</Badge>
-        <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(2.6rem,5vw,4.4rem)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 24 }}>
+        <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(2rem,5vw,4.4rem)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 24 }}>
           Connecting Africa to a<br /><GradText>Brighter Digital Future</GradText>
         </h1>
-        <p style={{ fontSize: 17, color: "rgba(255,255,255,.6)", lineHeight: 1.75, maxWidth: 530, marginBottom: 36, fontWeight: 300 }}>
+        <p style={{ fontSize: isMobile ? 15 : 17, color: "rgba(255,255,255,.6)", lineHeight: 1.75, maxWidth: 530, marginBottom: 36, fontWeight: 300 }}>
           Bridging the digital divide with affordable fibre, 5G, and integrated ICT solutions — built for communities, businesses, and institutions across South Africa.
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
@@ -187,18 +211,18 @@ function HomePage({ setPage }) {
         </div>
       </div>
 
-      {/* Floating stats */}
-      <div style={{ position: "absolute", right: 64, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 16, zIndex: 2, animation: "fadeUp 1.1s ease .3s both" }}>
+      {/* Stats - inline on mobile */}
+      <div style={{ display: "flex", flexDirection: isMobile ? "row" : "column", flexWrap: "wrap", gap: 12, zIndex: 2, animation: "fadeUp 1.1s ease .3s both", marginTop: isMobile ? 32 : 0, position: isMobile ? "relative" : "absolute", right: isMobile ? "auto" : 64, top: isMobile ? "auto" : "50%", transform: isMobile ? "none" : "translateY(-50%)" }}>
         {[["100%", "Black-Owned"], ["1Gbps", "Max Speed"], ["5G", "Ready"]].map(([num, lab]) => (
-          <div key={lab} style={{ background: C.glass, border: `1px solid ${C.glassBorder}`, backdropFilter: "blur(20px)", borderRadius: 16, padding: "18px 28px", textAlign: "center", minWidth: 140 }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, background: `linear-gradient(135deg, ${C.magenta}, ${C.lightNavy})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{num}</div>
-            <div style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginTop: 3 }}>{lab}</div>
+          <div key={lab} style={{ background: C.glass, border: `1px solid ${C.glassBorder}`, backdropFilter: "blur(20px)", borderRadius: 16, padding: isMobile ? "12px 16px" : "18px 28px", textAlign: "center", minWidth: isMobile ? 90 : 140, flex: isMobile ? 1 : "none" }}>
+            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: isMobile ? 20 : 28, fontWeight: 800, background: `linear-gradient(135deg, ${C.magenta}, ${C.lightNavy})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{num}</div>
+            <div style={{ fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginTop: 3 }}>{lab}</div>
           </div>
         ))}
       </div>
 
       {/* Quick nav cards */}
-      <div style={{ position: "absolute", bottom: 48, left: 64, right: 64, display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, zIndex: 2, animation: "fadeUp 1.2s ease .5s both" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: isMobile ? 10 : 14, zIndex: 2, animation: "fadeUp 1.2s ease .5s both", marginTop: 32, position: "relative" }}>
         {[
           { icon: "⚡", label: "Check Coverage", sub: "See if we serve your area", page: "coverage", color: C.magenta },
           { icon: "📦", label: "Place an Order", sub: "Get connected today", page: "order", color: C.navy },
@@ -225,10 +249,10 @@ function ServicesPage({ setPage }) {
   const [active, setActive] = useState(null);
 
   return (
-    <div style={{ minHeight: "100vh", padding: "120px 64px 80px" }}>
+    <div style={{ minHeight: "100vh", padding: window.innerWidth < 768 ? "100px 20px 40px" : "120px 64px 80px" }}>
       <Orbs />
       <div style={{ position: "relative", zIndex: 2 }}>
-        <div style={{ marginBottom: 56, maxWidth: 600 }}>
+        <div style={{ marginBottom: 40, maxWidth: 600 }}>
           <SectionTag>What We Do</SectionTag>
           <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(2rem,3.5vw,3rem)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", marginBottom: 16 }}>
             Integrated ICT Solutions<br /><GradText>for Every Scale</GradText>
@@ -236,7 +260,7 @@ function ServicesPage({ setPage }) {
           <p style={{ color: "rgba(255,255,255,.55)", fontWeight: 300, lineHeight: 1.7 }}>From home fibre to enterprise IoT — one partner for your entire digital journey.</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
           {SERVICES.map(s => (
             <div key={s.id} onClick={() => setActive(active === s.id ? null : s.id)}
               style={{ background: C.glass, border: `1px solid ${active === s.id ? s.color + "66" : C.glassBorder}`, borderRadius: 22, padding: "28px 28px 24px", cursor: "pointer", transition: "all .3s", position: "relative", overflow: "hidden" }}
@@ -339,10 +363,10 @@ function CoveragePage({ setPage, setCoveredArea }) {
   });
 
   return (
-    <div style={{ minHeight: "100vh", padding: "120px 64px 80px" }}>
+    <div style={{ minHeight: "100vh", padding: window.innerWidth < 768 ? "100px 20px 40px" : "120px 64px 80px" }}>
       <Orbs />
       <div style={{ position: "relative", zIndex: 2 }}>
-        <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center", marginBottom: 56 }}>
+        <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center", marginBottom: 40 }}>
           <SectionTag>Coverage Checker</SectionTag>
           <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(2rem,3.5vw,3rem)", fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", marginBottom: 16 }}>
             Are we in <GradText>your area?</GradText>
@@ -475,7 +499,7 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
   const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, fontWeight: 500, marginBottom: 6, display: "block" };
 
   return (
-    <div style={{ minHeight: "100vh", padding: "120px 64px 80px" }}>
+    <div style={{ minHeight: "100vh", padding: window.innerWidth < 768 ? "100px 20px 40px" : "120px 64px 80px" }}>
       <Orbs />
       <div style={{ position: "relative", zIndex: 2, maxWidth: 720, margin: "0 auto" }}>
         <SectionTag>Order Form</SectionTag>
@@ -505,7 +529,7 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
           {step === 1 && (
             <div>
               <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Tell us about yourself</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: window.innerWidth < 768 ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 16 }}>
                 <div><label style={labelStyle}>First Name</label><input style={inputStyle} value={form.firstName} onChange={e => upd("firstName", e.target.value)} placeholder="Sipho" /></div>
                 <div><label style={labelStyle}>Last Name</label><input style={inputStyle} value={form.lastName} onChange={e => upd("lastName", e.target.value)} placeholder="Dlamini" /></div>
               </div>
@@ -644,7 +668,7 @@ function TrackPage({ orderRef, setPage }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", padding: "120px 64px 80px" }}>
+    <div style={{ minHeight: "100vh", padding: window.innerWidth < 768 ? "100px 20px 40px" : "120px 64px 80px" }}>
       <Orbs />
       <div style={{ position: "relative", zIndex: 2, maxWidth: 720, margin: "0 auto" }}>
         <SectionTag>Order Tracking</SectionTag>
@@ -724,7 +748,7 @@ function TrackPage({ orderRef, setPage }) {
 // ── TEAM PAGE ─────────────────────────────────────────────────
 function TeamPage() {
   return (
-    <div style={{ minHeight: "100vh", padding: "120px 64px 80px" }}>
+    <div style={{ minHeight: "100vh", padding: window.innerWidth < 768 ? "100px 20px 40px" : "120px 64px 80px" }}>
       <Orbs />
       <div style={{ position: "relative", zIndex: 2, maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
         <SectionTag>Our Team</SectionTag>
@@ -761,10 +785,10 @@ function ContactPage() {
   const [sent, setSent] = useState(false);
 
   return (
-    <div style={{ minHeight: "100vh", padding: "120px 64px 80px" }}>
+    <div style={{ minHeight: "100vh", padding: window.innerWidth < 768 ? "100px 20px 40px" : "120px 64px 80px" }}>
       <Orbs />
       <div style={{ position: "relative", zIndex: 2 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: "80px", maxWidth: 1100, margin: "0 auto", alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: window.innerWidth < 768 ? "1fr" : "1fr 1.3fr", gap: window.innerWidth < 768 ? "40px" : "80px", maxWidth: 1100, margin: "0 auto", alignItems: "start" }}>
           <div>
             <SectionTag>Get In Touch</SectionTag>
             <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(2rem,3.5vw,2.8rem)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.02em", marginBottom: 16 }}>
