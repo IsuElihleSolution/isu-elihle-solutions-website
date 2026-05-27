@@ -802,15 +802,27 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
   const steps = ["Your Details", "Service & Plan", "Address", "Confirm"];
   const inputStyle = { width: "100%", padding: "12px 16px", background: "rgba(255,255,255,.05)", border: `1px solid ${C.glassBorder}`, borderRadius: 12, color: "#fff", fontSize: 14, outline: "none", fontFamily: "'DM Sans',sans-serif", fontWeight: 300 };
   const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, fontWeight: 500, marginBottom: 6, display: "block" };
-  const genRef = () => "IES-" + Date.now().toString(36).toUpperCase().slice(-6);
-  const submit = () => {
+  const submit = async () => {
     setSubmitting(true);
-    setTimeout(() => {
-      const ref = genRef();
-      setOrderRef({ ref, form, date: new Date().toISOString() });
-      setSubmitting(false);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Could not place order. Please try again.");
+        return;
+      }
+      const { reference } = await res.json();
+      setOrderRef({ ref: reference, form, date: new Date().toISOString() });
       setPage("track");
-    }, 1800);
+    } catch {
+      alert("Network error. Please check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -921,22 +933,44 @@ function TrackPage({ orderRef, setPage }) {
   const [searching, setSearching] = useState(false);
   const isMobile = window.innerWidth < 768;
 
+  const STATUS_ORDER = ["received", "processing", "scheduled", "installing", "testing", "active"];
+  const currentStatusIdx = Math.max(0, STATUS_ORDER.indexOf(tracking?.status || "received"));
   const MILESTONES = [
-    { key: "received", label: "Order Received", icon: "📋", desc: "Your order has been submitted and is being reviewed.", done: true, date: tracking?.date ? new Date(tracking.date).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" }) : "" },
-    { key: "processing", label: "Processing", icon: "⚙️", desc: "Verifying address, confirming coverage, preparing installation schedule.", done: !!orderRef, date: orderRef ? "In progress" : "" },
-    { key: "scheduled", label: "Installation Scheduled", icon: "📅", desc: "A technician has been assigned and your installation date confirmed.", done: false, date: "" },
-    { key: "installing", label: "Installation In Progress", icon: "🔧", desc: "Our technician is on-site setting up your connection.", done: false, date: "" },
-    { key: "testing", label: "Testing & Activation", icon: "📶", desc: "Your connection is being tested and activated.", done: false, date: "" },
-    { key: "active", label: "Connection Active", icon: "✅", desc: "Your service is live! Welcome to Isu Elihle Solutions.", done: false, date: "" },
-  ];
+    { key: "received", label: "Order Received", icon: "📋", desc: "Your order has been submitted and is being reviewed.", date: tracking?.date ? new Date(tracking.date).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" }) : "" },
+    { key: "processing", label: "Processing", icon: "⚙️", desc: "Verifying address, confirming coverage, preparing installation schedule.", date: "" },
+    { key: "scheduled", label: "Installation Scheduled", icon: "📅", desc: "A technician has been assigned and your installation date confirmed.", date: "" },
+    { key: "installing", label: "Installation In Progress", icon: "🔧", desc: "Our technician is on-site setting up your connection.", date: "" },
+    { key: "testing", label: "Testing & Activation", icon: "📶", desc: "Your connection is being tested and activated.", date: "" },
+    { key: "active", label: "Connection Active", icon: "✅", desc: "Your service is live! Welcome to Isu Elihle Solutions.", date: "" },
+  ].map((m, i) => ({ ...m, done: i <= currentStatusIdx }));
 
-  const search = () => {
+  const search = async () => {
+    const ref = queryRef.trim().toUpperCase();
+    if (!ref) return;
     setSearching(true);
-    setTimeout(() => {
-      if (queryRef.startsWith("IES-")) setTracking({ ref: queryRef, form: { firstName: "Customer", city: "Your Area", service: "fibre", plan: "Home 200" }, date: new Date().toISOString() });
-      else alert("Order reference not found.");
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(ref)}`);
+      if (res.status === 404) {
+        alert("Order reference not found.");
+        setTracking(null);
+        return;
+      }
+      if (!res.ok) {
+        alert("Could not load order. Please try again.");
+        return;
+      }
+      const data = await res.json();
+      setTracking({
+        ref: data.reference,
+        status: data.status,
+        date: data.createdAt,
+        form: { firstName: data.firstName, city: data.city, service: data.service, plan: data.plan },
+      });
+    } catch {
+      alert("Network error. Please check your connection and try again.");
+    } finally {
       setSearching(false);
-    }, 800);
+    }
   };
 
   return (
@@ -958,7 +992,7 @@ function TrackPage({ orderRef, setPage }) {
                 <div style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 4 }}>Reference</div>
                 <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: "0.05em" }}>{tracking.ref}</div>
               </div>
-              <div style={{ padding: "8px 18px", background: "rgba(34,197,94,.15)", border: "1px solid rgba(34,197,94,.3)", borderRadius: 50, fontSize: 12, color: "#22c55e", fontWeight: 600 }}>● Processing</div>
+              <div style={{ padding: "8px 18px", background: "rgba(34,197,94,.15)", border: "1px solid rgba(34,197,94,.3)", borderRadius: 50, fontSize: 12, color: "#22c55e", fontWeight: 600, textTransform: "capitalize" }}>● {tracking.status || "Received"}</div>
             </div>
             <div style={{ background: C.glass, border: `1px solid ${C.glassBorder}`, borderRadius: 22, padding: "32px 36px" }}>
               <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 16, fontWeight: 700, marginBottom: 28 }}>Installation Milestones</div>
