@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .query(`
         INSERT INTO dbo.Orders
           (reference, firstName, lastName, email, phone, idNumber,
-           address, suburb, city, province, service, plan, installation, notes)
+           address, suburb, city, province, service, planName, installation, notes)
         VALUES
           (@reference, @firstName, @lastName, @email, @phone, @idNumber,
            @address, @suburb, @city, @province, @service, @plan, @installation, @notes);

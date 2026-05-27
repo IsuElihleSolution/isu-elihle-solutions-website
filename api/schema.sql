@@ -14,7 +14,7 @@ BEGIN
         city            NVARCHAR(100)   NOT NULL,
         province        NVARCHAR(50)    NOT NULL,
         service         NVARCHAR(30)    NOT NULL,
-        plan            NVARCHAR(50)    NOT NULL,
+        planName        NVARCHAR(50)    NOT NULL,
         installation    NVARCHAR(30)    NOT NULL DEFAULT 'standard',
         notes           NVARCHAR(MAX)   NULL,
         status          NVARCHAR(30)    NOT NULL DEFAULT 'received',

@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .request()
       .input("reference", sql.NVarChar(50), reference)
       .query(`
-        SELECT reference, status, firstName, city, service, plan, createdAt
+        SELECT reference, status, firstName, city, service, planName AS plan, createdAt
         FROM dbo.Orders
         WHERE reference = @reference;
       `);
