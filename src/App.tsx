@@ -1083,7 +1083,7 @@ function ContactPage() {
             <Badge>Contact Us</Badge>
             <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(2rem,3.5vw,2.8rem)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.02em", marginBottom: 16 }}>Let\'s Connect <GradText>Your World.</GradText></h1>
             <p style={{ color: "rgba(255,255,255,.55)", fontWeight: 300, lineHeight: 1.7, marginBottom: 36 }}>Whether you\'re a home user, business, municipality, or partner — we\'d love to hear from you.</p>
-            {[["📍","Eastern Cape, South Africa"],["🌐","www.isu-elihle.co.za"],["📧","hello@isu-elihle.co.za"],["💬","WhatsApp: Available via chat button"]].map(([icon,val]) => (
+            {[["📍","Eastern Cape, South Africa"],["🌐","www.isu-elihle.co.za"],["📧","hello@isu-elihle.co.za"],["📞","043 004 0262"],["💬","WhatsApp: Available via chat button"]].map(([icon,val]) => (
               <div key={val} style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 14, color: "rgba(255,255,255,.7)", marginBottom: 14 }}>
                 <span style={{ fontSize: 18 }}>{icon}</span>{val}
               </div>
@@ -1137,6 +1137,11 @@ function Footer({ setPage }) {
             </div>
           </div>
           <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, fontWeight: 300, maxWidth: 280 }}>Connecting Africa to a brighter digital future. 100% Black-Owned. B-BBEE Level 1.</p>
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+            {[["📧","hello@isu-elihle.co.za"],["📞","043 004 0262"]].map(([icon,val]) => (
+              <div key={val} style={{ fontSize: 13, color: C.muted, display: "flex", alignItems: "center", gap: 8 }}><span>{icon}</span>{val}</div>
+            ))}
+          </div>
         </div>
         {[
           { title: "Services", links: [["Fibre Connectivity","fibre"],["5G Solutions","5g"],["ICT Solutions","ict"],["Business Analytics","analytics"],["Internet of Things","iot"],["Digital Advertising","digital"]] },
