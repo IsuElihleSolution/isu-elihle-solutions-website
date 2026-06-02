@@ -797,8 +797,25 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", idNumber: "", address: "", suburb: "", city: coveredArea?.name || "", province: coveredArea?.province || "Eastern Cape", service: "fibre", plan: "Home 200", installation: "standard", notes: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [stepError, setStepError] = useState("");
   const isMobile = window.innerWidth < 768;
-  const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const upd = (k, v) => { setStepError(""); setForm(p => ({ ...p, [k]: v })); };
+  const validateStep = (s: number) => {
+    if (s === 1) {
+      if (!form.firstName.trim()) return "Please enter your first name.";
+      if (!form.lastName.trim()) return "Please enter your last name.";
+      if (!form.email.trim()) return "Please enter your email address.";
+      if (!form.phone.trim()) return "Please enter your phone number.";
+    }
+    if (s === 2) {
+      if (!form.plan.trim()) return "Please select or enter a plan.";
+    }
+    if (s === 3) {
+      if (!form.address.trim()) return "Please enter your street address.";
+      if (!form.city.trim()) return "Please enter your city.";
+    }
+    return "";
+  };
   const steps = ["Your Details", "Service & Plan", "Address", "Confirm"];
   const inputStyle = { width: "100%", padding: "12px 16px", background: "rgba(255,255,255,.05)", border: `1px solid ${C.glassBorder}`, borderRadius: 12, color: "#fff", fontSize: 14, outline: "none", fontFamily: "'DM Sans',sans-serif", fontWeight: 300 };
   const labelStyle = { fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, fontWeight: 500, marginBottom: 6, display: "block" };
@@ -867,13 +884,13 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
             <div>
               <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Choose your service</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
-                {[["fibre","⚡","Fibre"],["5g","📡","5G"],["ict","🖥️","ICT"],["analytics","📊","Analytics"]].map(([val,icon,lab]) => (
-                  <div key={val} onClick={() => upd("service", val)} style={{ padding: "14px", background: form.service === val ? "rgba(191,34,147,.15)" : "rgba(255,255,255,.03)", border: `2px solid ${form.service === val ? C.magenta : C.glassBorder}`, borderRadius: 14, cursor: "pointer", transition: "all .2s", display: "flex", alignItems: "center", gap: 10 }}>
+                {[["fibre","⚡","Fibre"],["5g","📡","5G"],["ict","🖥️","ICT"],["analytics","📊","Analytics"],["iot","🔗","IoT"],["digital","📣","Digital"]].map(([val,icon,lab]) => (
+                  <div key={val} onClick={() => { setStepError(""); setForm(p => ({ ...p, service: val, plan: (val === "fibre" || val === "5g") ? p.plan : "" })); }} style={{ padding: "14px", background: form.service === val ? "rgba(191,34,147,.15)" : "rgba(255,255,255,.03)", border: `2px solid ${form.service === val ? C.magenta : C.glassBorder}`, borderRadius: 14, cursor: "pointer", transition: "all .2s", display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 20 }}>{icon}</span><span style={{ fontSize: 13, fontWeight: 500 }}>{lab}</span>
                   </div>
                 ))}
               </div>
-              {(form.service === "fibre" || form.service === "5g") && (
+              {(form.service === "fibre" || form.service === "5g") ? (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
                   {(SERVICE_DATA[form.service]?.plans || []).map(p => (
                     <div key={p.name} onClick={() => upd("plan", p.name)} style={{ padding: "14px 12px", textAlign: "center", background: form.plan === p.name ? "rgba(191,34,147,.15)" : "rgba(255,255,255,.03)", border: `2px solid ${form.plan === p.name ? C.magenta : C.glassBorder}`, borderRadius: 14, cursor: "pointer" }}>
@@ -882,6 +899,11 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
                       <div style={{ fontSize: 10, color: C.muted }}>{p.speed}</div>
                     </div>
                   ))}
+                </div>
+              ) : (
+                <div style={{ marginTop: 8 }}>
+                  <label style={labelStyle}>Package / Plan</label>
+                  <input style={inputStyle} value={form.plan} onChange={e => upd("plan", e.target.value)} placeholder="e.g. Starter, Enterprise, Custom…" />
                 </div>
               )}
             </div>
@@ -892,7 +914,7 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
               <div style={{ marginBottom: 16 }}><label style={labelStyle}>Street Address</label><input style={inputStyle} value={form.address} onChange={e => upd("address", e.target.value)} placeholder="123 Main Street" /></div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 16 }}>
                 <div><label style={labelStyle}>Suburb</label><input style={inputStyle} value={form.suburb} onChange={e => upd("suburb", e.target.value)} placeholder="e.g. Vincent" /></div>
-                <div><label style={labelStyle}>City</label><input style={inputStyle} value={form.city} onChange={e => upd("city", e.target.value)} /></div>
+                <div><label style={labelStyle}>City</label><input style={inputStyle} value={form.city} onChange={e => upd("city", e.target.value)} placeholder="e.g. East London" /></div>
               </div>
               <div style={{ marginBottom: 16 }}><label style={labelStyle}>Province</label>
                 <select style={{ ...inputStyle, appearance: "none" }} value={form.province} onChange={e => upd("province", e.target.value)}>
@@ -916,9 +938,12 @@ function OrderPage({ coveredArea, setPage, setOrderRef }) {
               </div>
             </div>
           )}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
-            {step > 1 ? <Btn onClick={() => setStep(s => s - 1)} variant="outline">← Back</Btn> : <div />}
-            {step < 4 ? <Btn onClick={() => setStep(s => s + 1)}>Continue →</Btn> : <Btn onClick={submit} style={{ minWidth: 160, justifyContent: "center" }}>{submitting ? "Placing Order…" : "Place Order ✓"}</Btn>}
+          {stepError && <div style={{ color: "#f87171", fontSize: 13, textAlign: "center", marginTop: 16 }}>{stepError}</div>}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
+            {step > 1 ? <Btn onClick={() => { setStepError(""); setStep(s => s - 1); }} variant="outline">← Back</Btn> : <div />}
+            {step < 4
+              ? <Btn onClick={() => { const err = validateStep(step); if (err) { setStepError(err); return; } setStepError(""); setStep(s => s + 1); }}>Continue →</Btn>
+              : <Btn onClick={submit} style={{ minWidth: 160, justifyContent: "center" }}>{submitting ? "Placing Order…" : "Place Order ✓"}</Btn>}
           </div>
         </div>
       </div>
