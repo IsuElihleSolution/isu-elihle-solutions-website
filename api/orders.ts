@@ -128,8 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            @address, @suburb, @city, @province, @service, @plan, @installation, @notes);
       `);
 
-    // Fire-and-forget — Zoho failure must not block the order response
-    createZohoLead(body).catch((err) => console.error("Zoho lead error:", err));
+    await createZohoLead(body);
 
     return res.status(201).json({ reference, status: "received" });
   } catch (err) {
